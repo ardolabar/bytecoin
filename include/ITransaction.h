@@ -102,6 +102,10 @@ public:
   virtual Hash getTransactionPrefixHash() const = 0;
   virtual PublicKey getTransactionPublicKey() const = 0;
 
+  // extra
+  virtual bool getPaymentId(Hash& paymentId) const = 0;
+  virtual bool getExtraNonce(std::string& nonce) const = 0;
+
   // inputs
   virtual size_t getInputCount() const = 0;
   virtual uint64_t getInputTotalAmount() const = 0;
@@ -137,6 +141,10 @@ public:
   // transaction parameters
   virtual void setUnlockTime(uint64_t unlockTime) = 0;
 
+  // extra
+  virtual void setPaymentId(const Hash& paymentId) = 0;
+  virtual void setExtraNonce(const std::string& nonce) = 0;
+
   // Inputs/Outputs 
   virtual size_t addInput(const TransactionTypes::InputKey& input) = 0;
   virtual size_t addInput(const AccountKeys& senderKeys, const TransactionTypes::InputKeyInfo& info, KeyPair& ephKeys) = 0;
@@ -157,18 +165,9 @@ public:
   virtual Blob getTransactionData() const = 0;
 };
 
-class ITransactionExtra {
-public:
-  virtual void setPaymentId(const Hash& paymentId) = 0;
-  virtual bool getPaymentId(Hash& paymentId) const = 0;
-  virtual void setExtraNonce(const std::string& nonce) = 0;
-  virtual bool getExtraNonce(std::string& nonce) const = 0;
-};
-
 class ITransaction : 
   public ITransactionReader, 
-  public ITransactionWriter,
-  public ITransactionExtra  {
+  public ITransactionWriter {
 };
 
 }
