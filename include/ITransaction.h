@@ -99,8 +99,10 @@ namespace TransactionTypes {
 // 
 class ITransactionReader {
 public:
+  virtual Hash getTransactionHash() const = 0;
   virtual Hash getTransactionPrefixHash() const = 0;
   virtual PublicKey getTransactionPublicKey() const = 0;
+  virtual uint64_t getUnlockTime() const = 0;
 
   // extra
   virtual bool getPaymentId(Hash& paymentId) const = 0;
@@ -128,6 +130,9 @@ public:
   virtual bool validateInputs() const = 0;
   virtual bool validateOutputs() const = 0;
   virtual bool validateSignatures() const = 0;
+
+  // serialized transaction
+  virtual Blob getTransactionData() const = 0;
 };
 
 //
@@ -160,9 +165,6 @@ public:
   // signing
   virtual void signInputKey(size_t input, const TransactionTypes::InputKeyInfo& info, const KeyPair& ephKeys) = 0;
   virtual void signInputMultisignature(size_t input, const PublicKey& sourceTransactionKey, size_t outputIndex, const AccountKeys& accountKeys) = 0;
-
-  // build transaction
-  virtual Blob getTransactionData() const = 0;
 };
 
 class ITransaction : 
