@@ -363,6 +363,7 @@ namespace CryptoNote {
     const auto& txKey = txSecretKey();
     size_t outputIndex = transaction.vout.size();
     TransactionOutputMultisignature outMsig;
+    outMsig.requiredSignatures = requiredSignatures;
     outMsig.keys.resize(to.size());
     for (int i = 0; i < to.size(); ++i) {
       derivePublicKey(to[i], txKey, outputIndex, outMsig.keys[i]);
@@ -524,13 +525,47 @@ namespace CryptoNote {
     output.requiredSignatures = m.requiredSignatures;
   }
 
+  bool isOutToKey(const crypto::public_key& spendPublicKey, const crypto::public_key& outKey, const crypto::key_derivation& derivation, size_t keyIndex) {
+    crypto::public_key pk;
+    derive_public_key(derivation, keyIndex, spendPublicKey, pk);
+    return pk == outKey;
+  }
+
   bool Transaction::findOutputsToAccount(const AccountAddress& addr, const SecretKey& viewSecretKey, std::vector<size_t>& out, uint64_t& amount) const {
     account_keys keys;
     keys.m_account_address = reinterpret_cast<const AccountPublicAddress&>(addr);
     // only view secret key is used, spend key is not needed
     keys.m_view_secret_key = reinterpret_cast<const crypto::secret_key&>(viewSecretKey);
     crypto::public_key txPubKey = reinterpret_cast<const crypto::public_key&>(getTransactionPublicKey());
-    return lookup_acc_outs(keys, transaction, txPubKey, out, amount);
+
+    amount = 0;
+    size_t keyIndex = 0;
+    size_t outputIndex = 0;
+
+    crypto::key_derivation derivation;
+    generate_key_derivation(txPubKey, keys.m_view_secret_key, derivation);
+
+    for (const TransactionOutput& o : transaction.vout) {
+      assert(o.target.type() == typeid(TransactionOutputToKey) || o.target.type() == typeid(TransactionOutputMultisignature));
+      if (o.target.type() == typeid(TransactionOutputToKey)) {
+        if (is_out_to_acc(keys, boost::get<TransactionOutputToKey>(o.target), derivation, keyIndex)) {
+          out.push_back(outputIndex);
+          amount += o.amount;
+        }
+        ++keyIndex;
+      } else if (o.target.type() == typeid(TransactionOutputMultisignature)) {
+        const auto& target = boost::get<TransactionOutputMultisignature>(o.target);
+        for (const auto& key : target.keys) {
+          if (isOutToKey(keys.m_account_address.m_spendPublicKey, key, derivation, outputIndex)) {
+            out.push_back(outputIndex);
+          }
+          ++keyIndex;
+        }
+      }
+      ++outputIndex;
+    }
+
+    return true;
   }
 
   size_t Transaction::getRequiredSignaturesCount(size_t index) const {

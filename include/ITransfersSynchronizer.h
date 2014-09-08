@@ -20,6 +20,7 @@
 #include <cstdint>
 #include "ITransaction.h"
 #include "ITransfersContainer.h"
+#include "IStreamSerializable.h"
 
 namespace CryptoNote {
 
@@ -43,7 +44,7 @@ namespace CryptoNote {
     virtual ITransfersContainer& getContainer() = 0;
   };
 
-  class ITransfersSynchronizer {
+  class ITransfersSynchronizer: public IStreamSerializable {
   public:
     virtual ~ITransfersSynchronizer() {}
 

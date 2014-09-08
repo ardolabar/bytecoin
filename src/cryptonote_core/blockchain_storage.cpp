@@ -1871,7 +1871,8 @@ bool blockchain_storage::pushTransaction(BlockEntry& block, const crypto::hash& 
       amountOutputs.push_back(std::make_pair<>(transactionIndex, output));
     } else if (transaction.tx.vout[output].target.type() == typeid(TransactionOutputMultisignature)) {
       auto& amountOutputs = m_multisignatureOutputs[transaction.tx.vout[output].amount];
-      MultisignatureOutputUsage outputUsage = {transactionIndex, output, false};
+      transaction.m_global_output_indexes[output] = amountOutputs.size();
+      MultisignatureOutputUsage outputUsage = { transactionIndex, output, false };
       amountOutputs.push_back(outputUsage);
     }
   }

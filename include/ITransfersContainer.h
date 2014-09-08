@@ -20,6 +20,7 @@
 #include <cstdint>
 #include "ITransaction.h"
 #include "IObservable.h"
+#include "IStreamSerializable.h"
 
 namespace CryptoNote {
 
@@ -35,25 +36,47 @@ namespace CryptoNote {
 
   struct TransactionOutputInformation {
     // output info
+    TransactionTypes::OutputType type;
     uint64_t amount;
     uint64_t globalOutputIndex;
     size_t outputInTransaction;
-    PublicKey outputKey;
+
     // transaction info
     PublicKey transactionPublicKey;
+
+    union {
+      PublicKey outputKey;         // Type: Key 
+      uint32_t requiredSignatures; // Type: Multisignature
+    };
   };
 
-  class ITransfersContainer {
+  class ITransfersContainer: public IStreamSerializable {
   public:
-    
+
+    enum Flags : uint32_t {
+      // state
+      IncludeStateUnlocked = 0x01,
+      IncludeStateLocked = 0x02,
+      IncludeStateSoftLocked = 0x04,
+      // output type
+      IncludeTypeKey             = 0x100,
+      IncludeTypeMultisignature  = 0x200,
+      // combinations
+      IncludeStateAll = 0xff,
+      IncludeTypeAll = 0xff00,
+
+      IncludeAllUnlocked = IncludeTypeAll | IncludeStateUnlocked,
+      IncludeAll = IncludeTypeAll | IncludeStateAll,
+
+      IncludeDefault = IncludeAllUnlocked
+    };
+   
     virtual size_t transfersCount() = 0;
     virtual size_t transactionsCount() = 0;
-
-    virtual uint64_t balance() = 0;
-    virtual uint64_t unlockedBalance() = 0;
-    
-    virtual void getUnlockedOutputs(std::vector<TransactionOutputInformation>& transfers) = 0;
+    virtual uint64_t balance(uint32_t flags = IncludeDefault) = 0;
+    virtual void getOutputs(std::vector<TransactionOutputInformation>& transfers, uint32_t flags = IncludeDefault) = 0;
     virtual bool getTransactionInformation(const Hash& transactionHash, TransactionInformation& info) = 0;
+    virtual bool getTransactionOutputs(const Hash& transactionHash, std::vector<TransactionOutputInformation>& transfers, uint32_t flags = IncludeDefault) = 0;
   };
 
 }
