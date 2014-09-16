@@ -15,19 +15,32 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serialization/JsonInputStreamSerializer.h"
+#pragma once
 
-#include <ctype.h>
-#include <exception>
+#include <functional>
+#include <queue>
+#include <stack>
 
-namespace cryptonote {
+class System {
+public:
+  System();
+  System(const System&) = delete;
+  ~System();
+  System& operator=(const System&) = delete;
+  void* getCurrentContext() const;
+  void* getIoService();
+  void pushContext(void* context);
+  void spawn(std::function<void()>&& procedure);
+  void yield();
+  void wake();
 
-JsonInputStreamSerializer::JsonInputStreamSerializer(std::istream& stream) {
-  stream >> root;
-  JsonInputValueSerializer::setJsonValue(&root);
-}
+  void contextProcedure();
 
-JsonInputStreamSerializer::~JsonInputStreamSerializer() {
-}
-
-} //namespace cryptonote
+private:
+  void* ioService;
+  void* work;
+  std::stack<void*> contexts;
+  std::queue<std::function<void()>> procedures;
+  std::queue<void*> resumingContexts;
+  void* currentContext;
+};

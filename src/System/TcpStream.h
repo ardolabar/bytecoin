@@ -15,19 +15,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serialization/JsonInputStreamSerializer.h"
+#pragma once
 
-#include <ctype.h>
-#include <exception>
+#include <streambuf>
+#include <array>
 
-namespace cryptonote {
+#include "TcpConnection.h"
 
-JsonInputStreamSerializer::JsonInputStreamSerializer(std::istream& stream) {
-  stream >> root;
-  JsonInputValueSerializer::setJsonValue(&root);
-}
+class TcpStreambuf : public std::streambuf {
+public:
+  TcpStreambuf(TcpConnection& connection);
+  TcpStreambuf(const TcpStreambuf&) = delete;
 
-JsonInputStreamSerializer::~JsonInputStreamSerializer() {
-}
+  virtual ~TcpStreambuf();
 
-} //namespace cryptonote
+private:
+  std::streambuf::int_type underflow() override;
+  std::streambuf::int_type overflow(std::streambuf::int_type ch) override;
+  int sync() override;
+
+  bool dumpBuffer();
+
+  TcpConnection& connection;
+
+  std::array<char, 4096> readBuf;
+  std::array<uint8_t, /*1024*/ 16> writeBuf;
+};

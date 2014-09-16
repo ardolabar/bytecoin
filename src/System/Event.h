@@ -15,19 +15,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serialization/JsonInputStreamSerializer.h"
+#pragma once
 
-#include <ctype.h>
-#include <exception>
+class System;
 
-namespace cryptonote {
+class Event {
+public:
+  Event();
+  explicit Event(System& system);
+  Event(const Event&) = delete;
+  Event(Event&& other);
+  ~Event();
+  Event& operator=(const Event&) = delete;
+  Event& operator=(Event&& other);
+  bool get() const;
+  void clear();
+  void set();
+  void wait();
 
-JsonInputStreamSerializer::JsonInputStreamSerializer(std::istream& stream) {
-  stream >> root;
-  JsonInputValueSerializer::setJsonValue(&root);
-}
+private:
+  struct Waiter;
 
-JsonInputStreamSerializer::~JsonInputStreamSerializer() {
-}
-
-} //namespace cryptonote
+  System* system;
+  Waiter* first;
+  Waiter* last;
+  bool state;
+};

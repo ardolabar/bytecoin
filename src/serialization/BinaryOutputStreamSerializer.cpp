@@ -1,6 +1,19 @@
-// Copyright (c) 2012-2014 The Cryptonote developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2012-2014, The CryptoNote developers, The Bytecoin developers
+//
+// This file is part of Bytecoin.
+//
+// Bytecoin is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Bytecoin is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "BinaryOutputStreamSerializer.h"
 
@@ -80,8 +93,9 @@ ISerializer& BinaryOutputStreamSerializer::endObject() {
 }
 
 ISerializer& BinaryOutputStreamSerializer::beginArray(std::size_t& size, const std::string& name) {
-  serializeVarint(size, name, *this);
-
+  uint64_t size64 = size;
+  serializeVarint(size64, name, *this);
+  size = size64;
   return *this;
 }
 
@@ -127,7 +141,7 @@ ISerializer& BinaryOutputStreamSerializer::operator()(bool& value, const std::st
 }
 
 ISerializer& BinaryOutputStreamSerializer::operator()(std::string& value, const std::string& name) {
-  size_t size = value.size();
+  uint64_t size = value.size();
   serializeVarint(size, name, *this);
   serializeData(stream, value.c_str(), value.size());
 

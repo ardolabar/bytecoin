@@ -15,26 +15,33 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#pragma once
+#ifndef HTTPPARSER_H_
+#define HTTPPARSER_H_
 
-#include <iosfwd>
+#include <iostream>
+#include <map>
 #include <string>
-#include <vector>
-
-//#include "serialization/Enumerator.h"
-#include "serialization/JsonInputValueSerializer.h"
-#include "serialization/JsonValue.h"
+#include "HttpRequest.h"
+#include "HttpResponse.h"
 
 namespace cryptonote {
 
-//deserialization
-class JsonInputStreamSerializer : public JsonInputValueSerializer {
+//Blocking HttpParser
+class HttpParser {
 public:
-  JsonInputStreamSerializer(std::istream& stream);
-  virtual ~JsonInputStreamSerializer();
+  HttpParser() {};
 
+  void receiveRequest(std::istream& stream, HttpRequest& request);
+  void receiveResponse(std::istream& stream, HttpResponse& response);
+  static HttpResponse::HTTP_STATUS parseResponseStatusFromString(const std::string& status);
 private:
-  JsonValue root;
+  void readWord(std::istream& stream, std::string& word);
+  void readHeaders(std::istream& stream, HttpRequest::Headers &headers);
+  bool readHeader(std::istream& stream, std::string& name, std::string& value);
+  size_t getBodyLen(const HttpRequest::Headers& headers);
+  void readBody(std::istream& stream, std::string& body, const size_t bodyLen);
 };
 
-}
+} //namespace cryptonote
+
+#endif /* HTTPPARSER_H_ */

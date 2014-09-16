@@ -15,19 +15,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serialization/JsonInputStreamSerializer.h"
+#pragma once
 
-#include <ctype.h>
-#include <exception>
+#include <cstdint>
+#include <string>
 
-namespace cryptonote {
+class System;
+class TcpConnection;
 
-JsonInputStreamSerializer::JsonInputStreamSerializer(std::istream& stream) {
-  stream >> root;
-  JsonInputValueSerializer::setJsonValue(&root);
-}
+class TcpListener {
+public:
+  TcpListener();
+  TcpListener(System& system, const std::string& address, uint16_t port);
+  TcpListener(const TcpListener&) = delete;
+  TcpListener(TcpListener&& other);
+  ~TcpListener();
+  TcpListener& operator=(const TcpListener&) = delete;
+  TcpListener& operator=(TcpListener&& other);
+  void start();
+  void stop();
+  TcpConnection accept();
 
-JsonInputStreamSerializer::~JsonInputStreamSerializer() {
-}
-
-} //namespace cryptonote
+private:
+  System* system;
+  void* listener;
+  bool stopped;
+};

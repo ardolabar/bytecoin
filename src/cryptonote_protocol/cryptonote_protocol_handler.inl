@@ -124,8 +124,8 @@ namespace cryptonote
     int64_t diff = static_cast<int64_t>(hshd.current_height) - static_cast<int64_t>(m_core.get_current_blockchain_height());
     LOG_PRINT_CCONTEXT_YELLOW("Sync data returned unknown top block: " << m_core.get_current_blockchain_height() << " -> " << hshd.current_height
       << " [" << std::abs(diff) << " blocks (" << std::abs(diff) / (24 * 60 * 60 / m_core.currency().difficultyTarget()) << " days) "
-      << (diff >= 0 ? std::string("behind") : std::string("ahead"))
-      << "] " << ENDL << "SYNCHRONIZATION started", (is_inital ? LOG_LEVEL_0:LOG_LEVEL_1));
+      << (diff >= 0 ? std::string("behind") : std::string("ahead")) << "] " << std::endl <<
+      "SYNCHRONIZATION started", (diff >= 0 ? (is_inital ? LOG_LEVEL_0 : LOG_LEVEL_1) : LOG_LEVEL_2));
     LOG_PRINT_L1("Remote top block height: " << hshd.current_height << ", id: " << hshd.top_id);
     context.m_state = cryptonote_connection_context::state_synchronizing;
     context.m_remote_blockchain_height = hshd.current_height;
