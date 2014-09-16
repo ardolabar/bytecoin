@@ -230,7 +230,7 @@ namespace
               }
 
               if (!r) {
-                fail_msg_writer() << "payment id has invalid format: \"" << value << "\", expected 64-character string";
+                fail_msg_writer() << "payment ID has invalid format: \"" << value << "\", expected 64-character string";
                 return false;
               }
             } else if (arg == "-f") {
@@ -251,7 +251,7 @@ namespace
             if (!m_currency.parseAccountAddressString(arg, de.addr)) {
               crypto::hash paymentId;
               if (tools::wallet2::parse_payment_id(arg, paymentId)) {
-                fail_msg_writer() << "Attempted to use payment ID in place of destination address, please use -p for payment ID. See help for details.";
+                fail_msg_writer() << "Invalid payment ID usage. Please, use -p <payment_id>. See help for details.";
               } else {
                 fail_msg_writer() << "Wrong address: " << arg;
               }
@@ -571,6 +571,8 @@ bool simple_wallet::save(const std::vector<std::string> &args)
 
 bool simple_wallet::reset(const std::vector<std::string> &args) {
   m_wallet->reset();
+  success_msg_writer(true) << "Reset is complete successfully";
+  refresh();
   return true;
 }
 
@@ -665,7 +667,7 @@ void simple_wallet::on_skip_transaction(uint64_t height, const cryptonote::Trans
   m_refresh_progress_reporter.update(height, true);
 }
 //----------------------------------------------------------------------------------------------------
-bool simple_wallet::refresh(const std::vector<std::string>& args)
+bool simple_wallet::refresh(const std::vector<std::string>& args/* = std::vector<std::string>()*/)
 {
   if (!try_connect_to_daemon())
     return true;
@@ -817,7 +819,7 @@ bool simple_wallet::show_payments(const std::vector<std::string> &args)
 {
   if(args.empty())
   {
-    fail_msg_writer() << "expected at least one payment_id";
+    fail_msg_writer() << "expected at least one payment ID";
     return true;
   }
 
@@ -855,7 +857,7 @@ bool simple_wallet::show_payments(const std::vector<std::string> &args)
     }
     else
     {
-      fail_msg_writer() << "payment id has invalid format: \"" << arg << "\", expected 64-character string";
+      fail_msg_writer() << "payment ID has invalid format: \"" << arg << "\", expected 64-character string";
     }
   }
 

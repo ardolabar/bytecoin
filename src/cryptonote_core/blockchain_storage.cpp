@@ -231,7 +231,9 @@ namespace cryptonote
       if (version < CURRENT_BLOCKCACHE_STORAGE_ARCHIVE_VER)
         return;
 
+      std::string operation;
       if (Archive::is_loading::value) {
+        operation = "- loading ";
         crypto::hash blockHash;
         ar & blockHash;
 
@@ -240,32 +242,23 @@ namespace cryptonote
         }
 
       } else {
+        operation = "- saving ";
         ar & m_lastBlockHash;
       }
 
-      if (Archive::is_loading::value) {
-        LOG_PRINT_L0("- loading block index...");
-      }
+      LOG_PRINT_L0(operation << "block index...");
       ar & m_bs.m_blockIndex;
 
-      if (Archive::is_loading::value) {
-        LOG_PRINT_L0("- loading transaction map...");
-      }
+      LOG_PRINT_L0(operation << "transaction map...");
       ar & m_bs.m_transactionMap;
 
-      if (Archive::is_loading::value) {
-        LOG_PRINT_L0("- loading spend keys...");
-      }
+      LOG_PRINT_L0(operation << "spend keys...");
       ar & m_bs.m_spent_keys;
 
-      if (Archive::is_loading::value) {
-        LOG_PRINT_L0("- loading outputs...");
-      }
+      LOG_PRINT_L0(operation << "outputs...");
       ar & m_bs.m_outputs;
 
-      if (Archive::is_loading::value) {
-        LOG_PRINT_L0("- loading multi-signature outputs...");
-      }
+      LOG_PRINT_L0(operation << "multi-signature outputs...");
       ar & m_bs.m_multisignatureOutputs;
 
       m_loaded = true;
@@ -456,6 +449,7 @@ bool blockchain_storage::init(const std::string& config_folder, bool load_existi
 bool blockchain_storage::storeCache() {
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
 
+  LOG_PRINT_L0("Saving blockchain...");
   BlockCacheSerializer ser(*this, get_tail_id());
   if (!tools::serialize_obj_to_file(ser, appendPath(m_config_folder, m_currency.blocksCacheFileName()))) {
     LOG_ERROR("Failed to save blockchain cache");
